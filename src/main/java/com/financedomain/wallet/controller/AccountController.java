@@ -1,6 +1,7 @@
 package com.financedomain.wallet.controller;
 
 import com.financedomain.wallet.bean.Account;
+import com.financedomain.wallet.exception.NullBalanceDataException;
 import com.financedomain.wallet.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,16 +16,6 @@ public class AccountController {
 
     @Autowired
     private WalletService walletService;
-
-    @PostMapping
-    public ResponseEntity<?> createAccount(@RequestBody Account account) {
-        try {
-            Account created = walletService.createAccount(account);
-            return ResponseEntity.status(HttpStatus.CREATED).body(created);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        }
-    }
 
     @GetMapping("/user/{idUser}")
     public ResponseEntity<List<Account>> getAccountsByUserId(@PathVariable long idUser) {
@@ -43,7 +34,7 @@ public class AccountController {
         try {
             double balance = walletService.getBalance(number);
             return ResponseEntity.ok(balance);
-        } catch (IllegalArgumentException e) {
+        } catch (NullBalanceDataException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
