@@ -15,7 +15,7 @@ public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_transaction")
-    private long id;
+    private Long id;
 
     @Column(name = "expediteur", nullable = false)
     private String sender;
@@ -24,7 +24,7 @@ public class Transaction {
     private String receiver;
 
     @Column(name = "montant")
-    private double amount;
+    private Double amount;
 
     @Column(name = "transaction")
     @Enumerated(EnumType.STRING)
