@@ -19,7 +19,16 @@ public class TransactionController {
     private WalletService walletService;
 
     @PostMapping("/transfer")
-    public ResponseEntity<?> transfer(@RequestBody TransferRequest request) {
+    public ResponseEntity<?> transfer(
+            @RequestBody TransferRequest request,
+            @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
+            @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
+        if (xUserRole == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+        if ("CLIENT".equals(xUserRole) && !request.getSender().equals(xUserPhone)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
         try {
             Transaction txn = walletService.transfer(request.getSender(), request.getReceiver(), request.getAmount());
             return ResponseEntity.status(HttpStatus.CREATED).body(txn);
@@ -29,7 +38,16 @@ public class TransactionController {
     }
 
     @PostMapping("/deposit")
-    public ResponseEntity<?> deposit(@RequestBody OperationRequest request) {
+    public ResponseEntity<?> deposit(
+            @RequestBody OperationRequest request,
+            @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
+            @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
+        if (xUserRole == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+        if ("CLIENT".equals(xUserRole) && !request.getNumber().equals(xUserPhone)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
         try {
             Transaction txn = walletService.deposit(request.getNumber(), request.getAmount());
             return ResponseEntity.status(HttpStatus.CREATED).body(txn);
@@ -39,7 +57,16 @@ public class TransactionController {
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<?> withdraw(@RequestBody OperationRequest request) {
+    public ResponseEntity<?> withdraw(
+            @RequestBody OperationRequest request,
+            @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
+            @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
+        if (xUserRole == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+        if ("CLIENT".equals(xUserRole) && !request.getNumber().equals(xUserPhone)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
         try {
             Transaction txn = walletService.withdraw(request.getNumber(), request.getAmount());
             return ResponseEntity.status(HttpStatus.CREATED).body(txn);
@@ -49,7 +76,16 @@ public class TransactionController {
     }
 
     @GetMapping("/history/{number}")
-    public ResponseEntity<List<Transaction>> getTransactionHistory(@PathVariable String number) {
+    public ResponseEntity<?> getTransactionHistory(
+            @PathVariable String number,
+            @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
+            @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
+        if (xUserRole == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+        if ("CLIENT".equals(xUserRole) && !number.equals(xUserPhone)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied");
+        }
         return ResponseEntity.ok(walletService.getTransactionHistory(number));
     }
 
