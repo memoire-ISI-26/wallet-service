@@ -3,6 +3,8 @@ package com.financedomain.wallet.service;
 import com.financedomain.wallet.bean.Account;
 import com.financedomain.wallet.bean.Transaction;
 import com.financedomain.wallet.enums.TransactionType;
+import com.financedomain.wallet.exception.InsufficentAmountException;
+import com.financedomain.wallet.exception.UnknownAccountException;
 import com.financedomain.wallet.repository.AccountRepository;
 import com.financedomain.wallet.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,23 +46,23 @@ public class WalletService {
     public double getBalance(String number) {
         return getAccountByNumber(number)
                 .map(Account::getBalance)
-                .orElseThrow(() -> new IllegalArgumentException("Compte introuvable pour le numéro : " + number));
+                .orElseThrow(() -> new UnknownAccountException("Compte introuvable pour le numéro : " + number));
     }
 
     @Transactional
     public Transaction transfer(String senderNumber, String receiverNumber, double amount) {
         if (amount <= 0) {
-            throw new IllegalArgumentException("Le montant du transfert doit être supérieur à 0.");
+            throw new InsufficentAmountException("Le montant du transfert doit être supérieur à 0.");
         }
 
         Account sender = getAccountByNumber(senderNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Compte expéditeur introuvable : " + senderNumber));
+                .orElseThrow(() -> new UnknownAccountException("Compte expéditeur introuvable : " + senderNumber));
 
         Account receiver = getAccountByNumber(receiverNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Compte receveur introuvable : " + receiverNumber));
+                .orElseThrow(() -> new UnknownAccountException("Compte receveur introuvable : " + receiverNumber));
 
         if (sender.getBalance() < amount) {
-            throw new IllegalArgumentException("Solde insuffisant sur le compte expéditeur.");
+            throw new InsufficentAmountException("Solde insuffisant sur le compte expéditeur.");
         }
 
         // Débiter/Créditer
@@ -84,11 +86,11 @@ public class WalletService {
     @Transactional
     public Transaction deposit(String number, double amount) {
         if (amount <= 0) {
-            throw new IllegalArgumentException("Le montant du dépôt doit être supérieur à 0.");
+            throw new InsufficentAmountException("Le montant du dépôt doit être supérieur à 0.");
         }
 
         Account account = getAccountByNumber(number)
-                .orElseThrow(() -> new IllegalArgumentException("Compte introuvable : " + number));
+                .orElseThrow(() -> new UnknownAccountException("Compte introuvable : " + number));
 
         account.setBalance(account.getBalance() + amount);
         accountRepository.save(account);
@@ -106,14 +108,14 @@ public class WalletService {
     @Transactional
     public Transaction withdraw(String number, double amount) {
         if (amount <= 0) {
-            throw new IllegalArgumentException("Le montant du retrait doit être supérieur à 0.");
+            throw new InsufficentAmountException("Le montant du retrait doit être supérieur à 0.");
         }
 
         Account account = getAccountByNumber(number)
-                .orElseThrow(() -> new IllegalArgumentException("Compte introuvable : " + number));
+                .orElseThrow(() -> new UnknownAccountException("Compte introuvable : " + number));
 
         if (account.getBalance() < amount) {
-            throw new IllegalArgumentException("Solde insuffisant.");
+            throw new InsufficentAmountException("Solde insuffisant.");
         }
 
         account.setBalance(account.getBalance() - amount);
