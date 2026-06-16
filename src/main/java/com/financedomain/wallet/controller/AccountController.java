@@ -14,9 +14,9 @@ import java.util.List;
 @RequestMapping("/accounts")
 public class AccountController {
 
-    private final static String Unauthorized = "Unauthorized";
-    private final static String AccessDenied = "Access Denied";
-    private final static String CLIENT ="CLIENT";
+    private static final String UNAUTHORIZED = "Unauthorized";
+    private static final String ACCESSDENIED = "Access Denied";
+    private static final String CLIENT ="CLIENT";
 
     @Autowired
     private WalletService walletService;
@@ -41,10 +41,10 @@ public class AccountController {
             @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
         if (xUserRole == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Unauthorized);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(UNAUTHORIZED);
         }
         if (CLIENT.equals(xUserRole) && !String.valueOf(idUser).equals(xUserId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(AccessDenied);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ACCESSDENIED);
         }
         return ResponseEntity.ok(walletService.getAccountsByUserId(idUser));
     }
@@ -55,10 +55,10 @@ public class AccountController {
             @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
         if (xUserRole == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Unauthorized);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(UNAUTHORIZED);
         }
         if (CLIENT.equals(xUserRole) && !number.equals(xUserPhone)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(AccessDenied);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ACCESSDENIED);
         }
         return walletService.getAccountByNumber(number)
                 .map(ResponseEntity::ok)
@@ -71,10 +71,10 @@ public class AccountController {
             @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
         if (xUserRole == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Unauthorized);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(UNAUTHORIZED);
         }
         if (CLIENT.equals(xUserRole) && !number.equals(xUserPhone)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(AccessDenied);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ACCESSDENIED);
         }
         try {
             double balance = walletService.getBalance(number);

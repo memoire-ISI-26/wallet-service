@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/transactions")
 public class TransactionController {
 
-    private final static String Unauthorized = "Unauthorized";
-    private final static String AccessDenied = "Access Denied";
-    private final static String CLIENT ="CLIENT";
+    private static final String UNAUTHORIZED = "Unauthorized";
+    private static final String ACCESSDENIED = "Access Denied";
+    private static final String CLIENT ="CLIENT";
 
     @Autowired
     private WalletService walletService;
@@ -27,10 +27,10 @@ public class TransactionController {
             @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
         if (xUserRole == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Unauthorized);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(UNAUTHORIZED);
         }
         if (CLIENT.equals(xUserRole) && !request.getSender().equals(xUserPhone)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(AccessDenied);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ACCESSDENIED);
         }
         try {
             Transaction txn = walletService.transfer(request.getSender(), request.getReceiver(), request.getAmount());
@@ -46,10 +46,10 @@ public class TransactionController {
             @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
         if (xUserRole == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Unauthorized);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(UNAUTHORIZED);
         }
         if (CLIENT.equals(xUserRole) && !request.getNumber().equals(xUserPhone)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(AccessDenied);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ACCESSDENIED);
         }
         try {
             Transaction txn = walletService.deposit(request.getNumber(), request.getAmount());
@@ -65,10 +65,10 @@ public class TransactionController {
             @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
         if (xUserRole == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Unauthorized);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(UNAUTHORIZED);
         }
         if (CLIENT.equals(xUserRole) && !request.getNumber().equals(xUserPhone)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(AccessDenied);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ACCESSDENIED);
         }
         try {
             Transaction txn = walletService.withdraw(request.getNumber(), request.getAmount());
@@ -84,10 +84,10 @@ public class TransactionController {
             @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
         if (xUserRole == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Unauthorized);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(UNAUTHORIZED);
         }
         if (CLIENT.equals(xUserRole) && !number.equals(xUserPhone)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(AccessDenied);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ACCESSDENIED);
         }
         return ResponseEntity.ok(walletService.getTransactionHistory(number));
     }
