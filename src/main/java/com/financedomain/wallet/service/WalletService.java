@@ -131,6 +131,32 @@ public class WalletService {
         return transactionRepository.save(txn);
     }
 
+    @Transactional
+    public Transaction purchase(String senderNumber, String receiverNumber, double amount, TransactionType type) {
+        if (amount <= 0) {
+            throw new InsufficentAmountException("Le montant de l'achat doit être supérieur à 0.");
+        }
+
+        Account sender = getAccountByNumber(senderNumber)
+                .orElseThrow(() -> new UnknownAccountException("Compte acheteur introuvable : " + senderNumber));
+
+        if (sender.getBalance() < amount) {
+            throw new InsufficentAmountException("Solde insuffisant pour effectuer l'achat.");
+        }
+
+        sender.setBalance(sender.getBalance() - amount);
+        accountRepository.save(sender);
+
+        Transaction txn = new Transaction();
+        txn.setSender(senderNumber);
+        txn.setReceiver(receiverNumber != null ? receiverNumber : senderNumber);
+        txn.setAmount(amount);
+        txn.setType(type);
+        txn.setCreatedAt(LocalDateTime.now());
+
+        return transactionRepository.save(txn);
+    }
+
     public List<Transaction> getTransactionHistory(String number) {
         return transactionRepository.findBySenderOrReceiverOrderByCreatedAtDesc(number, number);
     }

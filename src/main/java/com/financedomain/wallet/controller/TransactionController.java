@@ -3,6 +3,7 @@ package com.financedomain.wallet.controller;
 import com.financedomain.wallet.bean.Transaction;
 import com.financedomain.wallet.dto.OperationRequest;
 import com.financedomain.wallet.dto.TransferRequest;
+import com.financedomain.wallet.dto.PurchaseRequest;
 import com.financedomain.wallet.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -90,6 +91,29 @@ public class TransactionController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ACCESSDENIED);
         }
         return ResponseEntity.ok(walletService.getTransactionHistory(number));
+    }
+
+    @PostMapping("/purchase")
+    public ResponseEntity<?> purchase(
+            @RequestBody PurchaseRequest request,
+            @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
+            @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
+        if (xUserRole == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(UNAUTHORIZED);
+        }
+        if (CLIENT.equals(xUserRole) && !request.getSender().equals(xUserPhone)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ACCESSDENIED);
+        }
+        try {
+            Transaction txn = walletService.purchase(request.getSender(), request.getReceiver(), request.getAmount(), request.getType());
+            return ResponseEntity.status(HttpStatus.CREATED).body(txn);
+        } catch (com.financedomain.wallet.exception.UnknownAccountException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (com.financedomain.wallet.exception.InsufficentAmountException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
 }
