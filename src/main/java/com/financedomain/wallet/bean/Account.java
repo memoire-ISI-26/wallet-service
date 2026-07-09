@@ -26,6 +26,9 @@ public class Account {
 
     private Double balance;
 
+    @Column(name = "call_credit")
+    private Double callCredit = 0.0;
+
     @Column(name = "devise")
     private String currency;
 }
