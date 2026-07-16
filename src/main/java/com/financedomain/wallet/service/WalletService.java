@@ -98,7 +98,7 @@ public class WalletService {
         payload.put("transactionId", savedTxn.getId());
         payload.put("amount", amount);
         payload.put("receiverNumber", receiverNumber);
-        sendTrackingEvent("TRANSFER", senderNumber, payload);
+        sendTrackingEvent(savedTxn.getType().name(), senderNumber, payload);
 
         return savedTxn;
     }
@@ -128,7 +128,7 @@ public class WalletService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("transactionId", savedTxn.getId());
         payload.put("amount", amount);
-        sendTrackingEvent("DEPOSIT", number, payload);
+        sendTrackingEvent(savedTxn.getType().name(), number, payload);
 
         return savedTxn;
     }
@@ -162,7 +162,7 @@ public class WalletService {
         Map<String, Object> payload = new HashMap<>();
         payload.put("transactionId", savedTxn.getId());
         payload.put("amount", amount);
-        sendTrackingEvent("WITHDRAW", number, payload);
+        sendTrackingEvent(savedTxn.getType().name(), number, payload);
 
         return savedTxn;
     }
@@ -223,7 +223,7 @@ public class WalletService {
         payload.put("amount", amount);
         payload.put("purchaseType", type.toString());
         payload.put("receiverNumber", receiverNumber);
-        sendTrackingEvent("PURCHASE", senderNumber, payload);
+        sendTrackingEvent(savedTxn.getType().name(), senderNumber, payload);
 
         return savedTxn;
     }
