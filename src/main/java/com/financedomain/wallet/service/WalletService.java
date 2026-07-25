@@ -217,13 +217,6 @@ public class WalletService {
 
         Transaction savedTxn = transactionRepository.save(txn);
 
-        // Tracking
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("transactionId", savedTxn.getId());
-        payload.put("amount", amount);
-        payload.put("purchaseType", type.toString());
-        payload.put("receiverNumber", receiverNumber);
-        sendTrackingEvent(savedTxn.getType().name(), senderNumber, payload);
 
         return savedTxn;
     }
@@ -235,6 +228,8 @@ public class WalletService {
     private void sendTrackingEvent(String eventType, String msisdn, Object payload) {
         String xUserId = "unknown";
         String xUserRole = "INTERNAL"; // fallback for internal server calls
+        String xUserMode = "SIMPLE";
+        String xUserUniverse = null;
         try {
             ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
             if (attributes != null) {
@@ -243,9 +238,26 @@ public class WalletService {
                 if (headerId != null) xUserId = headerId;
                 String headerRole = request.getHeader("X-User-Role");
                 if (headerRole != null) xUserRole = headerRole;
+                String headerMode = request.getHeader("X-User-Mode");
+                if (headerMode != null) xUserMode = headerMode;
+                String headerUniverse = request.getHeader("X-User-Universe");
+                if (headerUniverse != null) xUserUniverse = headerUniverse;
             }
         } catch (Exception e) {
             // Ignore context issues
+        }
+
+        if (payload instanceof Map) {
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> map = (Map<String, Object>) payload;
+                map.put("mode", xUserMode);
+                if (xUserUniverse != null) {
+                    map.put("universe", xUserUniverse);
+                }
+            } catch (Exception e) {
+                // Ignore map cast issues
+            }
         }
 
         try {
