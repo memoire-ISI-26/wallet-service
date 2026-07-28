@@ -10,5 +10,5 @@ public enum TransactionType {
     ACHAT_ILLIFLEX,
     PAIEMENT_MARCHAND,
     PAIEMENT_RAPIDO,
-
+    ACHAT_INTERNATIONAL
 }
