@@ -9,6 +9,7 @@ import com.financedomain.wallet.exception.InsufficentAmountException;
 import com.financedomain.wallet.exception.UnknownAccountException;
 import com.financedomain.wallet.repository.AccountRepository;
 import com.financedomain.wallet.repository.TransactionRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,13 +18,19 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class WalletService {
+
+    private static final String TRANSACTION_ID = "transactionId";
+    private static final String AMOUNT = "amount";
+
 
     @Autowired
     private AccountRepository accountRepository;
@@ -95,8 +102,8 @@ public class WalletService {
 
         // Tracking
         Map<String, Object> payload = new HashMap<>();
-        payload.put("transactionId", savedTxn.getId());
-        payload.put("amount", amount);
+        payload.put(TRANSACTION_ID, savedTxn.getId());
+        payload.put(AMOUNT, amount);
         payload.put("receiverNumber", receiverNumber);
         sendTrackingEvent(savedTxn.getType().name(), senderNumber, payload);
 
@@ -126,8 +133,8 @@ public class WalletService {
 
         // Tracking
         Map<String, Object> payload = new HashMap<>();
-        payload.put("transactionId", savedTxn.getId());
-        payload.put("amount", amount);
+        payload.put(TRANSACTION_ID, savedTxn.getId());
+        payload.put(AMOUNT, amount);
         sendTrackingEvent(savedTxn.getType().name(), number, payload);
 
         return savedTxn;
@@ -154,14 +161,14 @@ public class WalletService {
         txn.setReceiver(number);
         txn.setAmount(amount);
         txn.setType(TransactionType.RETRAIT);
-        txn.setCreatedAt(LocalDateTime.now());
+        txn.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
 
         Transaction savedTxn = transactionRepository.save(txn);
 
         // Tracking
         Map<String, Object> payload = new HashMap<>();
-        payload.put("transactionId", savedTxn.getId());
-        payload.put("amount", amount);
+        payload.put(TRANSACTION_ID, savedTxn.getId());
+        payload.put(AMOUNT, amount);
         sendTrackingEvent(savedTxn.getType().name(), number, payload);
 
         return savedTxn;
@@ -272,7 +279,7 @@ public class WalletService {
                     .build();
             trackingProxy.collectEvent(event, "INTERNAL");
         } catch (Exception e) {
-            System.err.println("Erreur de tracking wallet: " + e.getMessage());
+            log.error("Erreur de tracking wallet: {}", e.getMessage(), e);
         }
     }
 }
