@@ -96,7 +96,7 @@ public class WalletService {
         txn.setReceiver(receiverNumber);
         txn.setAmount(amount);
         txn.setType(TransactionType.TRANSFERT);
-        txn.setCreatedAt(LocalDateTime.now());
+        txn.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
 
         Transaction savedTxn = transactionRepository.save(txn);
 
@@ -127,7 +127,7 @@ public class WalletService {
         txn.setReceiver(number);
         txn.setAmount(amount);
         txn.setType(TransactionType.DEPOT);
-        txn.setCreatedAt(LocalDateTime.now());
+        txn.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
 
         Transaction savedTxn = transactionRepository.save(txn);
 
@@ -220,7 +220,7 @@ public class WalletService {
         txn.setReceiver(receiverNumber != null ? receiverNumber : senderNumber);
         txn.setAmount(amount);
         txn.setType(type);
-        txn.setCreatedAt(LocalDateTime.now());
+        txn.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
 
         Transaction savedTxn = transactionRepository.save(txn);
 
