@@ -2,6 +2,7 @@ package com.financedomain.wallet.controller;
 
 import com.financedomain.wallet.bean.Account;
 import com.financedomain.wallet.exception.NullBalanceDataException;
+import com.financedomain.wallet.exception.UnknownAccountException;
 import com.financedomain.wallet.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -79,7 +80,7 @@ public class AccountController {
         try {
             double balance = walletService.getBalance(number);
             return ResponseEntity.ok(balance);
-        } catch (NullBalanceDataException e) {
+        } catch (UnknownAccountException | NullBalanceDataException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }

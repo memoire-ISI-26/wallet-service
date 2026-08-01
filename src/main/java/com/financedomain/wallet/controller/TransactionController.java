@@ -37,7 +37,9 @@ public class TransactionController {
         try {
             Transaction txn = walletService.transfer(request.getSender(), request.getReceiver(), request.getAmount());
             return ResponseEntity.status(HttpStatus.CREATED).body(txn);
-        } catch (IllegalArgumentException e) {
+        } catch (UnknownAccountException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (InsufficentAmountException | IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -56,7 +58,9 @@ public class TransactionController {
         try {
             Transaction txn = walletService.deposit(request.getNumber(), request.getAmount());
             return ResponseEntity.status(HttpStatus.CREATED).body(txn);
-        } catch (IllegalArgumentException e) {
+        } catch (UnknownAccountException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (InsufficentAmountException | IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
@@ -75,7 +79,9 @@ public class TransactionController {
         try {
             Transaction txn = walletService.withdraw(request.getNumber(), request.getAmount());
             return ResponseEntity.status(HttpStatus.CREATED).body(txn);
-        } catch (IllegalArgumentException e) {
+        } catch (UnknownAccountException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (InsufficentAmountException | IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
