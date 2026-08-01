@@ -184,35 +184,9 @@ public class WalletService {
                 .orElseThrow(() -> new UnknownAccountException("Compte acheteur introuvable : " + senderNumber));
 
         if (type == TransactionType.ACHAT_CREDIT) {
-            if (sender.getBalance() < amount) {
-                throw new InsufficentAmountException("Solde principal insuffisant pour acheter du crédit.");
-            }
-            sender.setBalance(sender.getBalance() - amount);
-            accountRepository.save(sender);
-
-            // Créditer le destinataire
-            Account receiver = getAccountByNumber(receiverNumber != null ? receiverNumber : senderNumber)
-                    .orElseThrow(() -> new UnknownAccountException("Compte destinataire du crédit introuvable."));
-            if (receiver.getCallCredit() == null) {
-                receiver.setCallCredit(0.0);
-            }
-            receiver.setCallCredit(receiver.getCallCredit() + amount);
-            accountRepository.save(receiver);
+            processCreditPurchase(sender, receiverNumber, amount);
         } else {
-            // Achat de pass ou autre paiement
-            if ("CREDIT".equalsIgnoreCase(paymentMethod)) {
-                if (sender.getCallCredit() == null || sender.getCallCredit() < amount) {
-                    throw new InsufficentAmountException("Crédit téléphonique insuffisant pour cet achat.");
-                }
-                sender.setCallCredit(sender.getCallCredit() - amount);
-            } else {
-                // Par défaut, payer avec le portefeuille principal (WALLET)
-                if (sender.getBalance() < amount) {
-                    throw new InsufficentAmountException("Solde principal insuffisant pour cet achat.");
-                }
-                sender.setBalance(sender.getBalance() - amount);
-            }
-            accountRepository.save(sender);
+            processPassOrOtherPurchase(sender, amount, paymentMethod);
         }
 
         Transaction txn = new Transaction();
@@ -222,10 +196,39 @@ public class WalletService {
         txn.setType(type);
         txn.setCreatedAt(LocalDateTime.now(ZoneId.of("UTC")));
 
-        Transaction savedTxn = transactionRepository.save(txn);
+        return transactionRepository.save(txn);
+    }
 
+    private void processCreditPurchase(Account sender, String receiverNumber, double amount) {
+        if (sender.getBalance() < amount) {
+            throw new InsufficentAmountException("Solde principal insuffisant pour acheter du crédit.");
+        }
+        sender.setBalance(sender.getBalance() - amount);
+        accountRepository.save(sender);
 
-        return savedTxn;
+        String targetNumber = receiverNumber != null ? receiverNumber : sender.getNumber();
+        Account receiver = getAccountByNumber(targetNumber)
+                .orElseThrow(() -> new UnknownAccountException("Compte destinataire du crédit introuvable."));
+        if (receiver.getCallCredit() == null) {
+            receiver.setCallCredit(0.0);
+        }
+        receiver.setCallCredit(receiver.getCallCredit() + amount);
+        accountRepository.save(receiver);
+    }
+
+    private void processPassOrOtherPurchase(Account sender, double amount, String paymentMethod) {
+        if ("CREDIT".equalsIgnoreCase(paymentMethod)) {
+            if (sender.getCallCredit() == null || sender.getCallCredit() < amount) {
+                throw new InsufficentAmountException("Crédit téléphonique insuffisant pour cet achat.");
+            }
+            sender.setCallCredit(sender.getCallCredit() - amount);
+        } else {
+            if (sender.getBalance() < amount) {
+                throw new InsufficentAmountException("Solde principal insuffisant pour cet achat.");
+            }
+            sender.setBalance(sender.getBalance() - amount);
+        }
+        accountRepository.save(sender);
     }
 
     public List<Transaction> getTransactionHistory(String number) {
@@ -233,39 +236,15 @@ public class WalletService {
     }
 
     private void sendTrackingEvent(String eventType, String msisdn, Object payload) {
-        String xUserId = "unknown";
-        String xUserRole = "INTERNAL"; // fallback for internal server calls
-        String xUserMode = "SIMPLE";
-        String xUserUniverse = null;
-        try {
-            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-            if (attributes != null) {
-                HttpServletRequest request = attributes.getRequest();
-                String headerId = request.getHeader("X-User-Id");
-                if (headerId != null) xUserId = headerId;
-                String headerRole = request.getHeader("X-User-Role");
-                if (headerRole != null) xUserRole = headerRole;
-                String headerMode = request.getHeader("X-User-Mode");
-                if (headerMode != null) xUserMode = headerMode;
-                String headerUniverse = request.getHeader("X-User-Universe");
-                if (headerUniverse != null) xUserUniverse = headerUniverse;
-            }
-        } catch (Exception e) {
-            // Ignore context issues
-        }
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = attributes != null ? attributes.getRequest() : null;
 
-        if (payload instanceof Map) {
-            try {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> map = (Map<String, Object>) payload;
-                map.put("mode", xUserMode);
-                if (xUserUniverse != null) {
-                    map.put("universe", xUserUniverse);
-                }
-            } catch (Exception e) {
-                // Ignore map cast issues
-            }
-        }
+        String xUserId = getHeaderOrDefault(request, "X-User-Id", "unknown");
+        String xUserRole = getHeaderOrDefault(request, "X-User-Role", "INTERNAL");
+        String xUserMode = getHeaderOrDefault(request, "X-User-Mode", "SIMPLE");
+        String xUserUniverse = getHeaderOrDefault(request, "X-User-Universe", null);
+
+        enrichPayload(payload, xUserMode, xUserUniverse);
 
         try {
             TrackingEvent event = TrackingEvent.builder()
@@ -280,6 +259,25 @@ public class WalletService {
             trackingProxy.collectEvent(event, "INTERNAL");
         } catch (Exception e) {
             log.error("Erreur de tracking wallet: {}", e.getMessage(), e);
+        }
+    }
+
+    private String getHeaderOrDefault(HttpServletRequest request, String headerName, String defaultValue) {
+        if (request == null) {
+            return defaultValue;
+        }
+        String value = request.getHeader(headerName);
+        return value != null ? value : defaultValue;
+    }
+
+    private void enrichPayload(Object payload, String xUserMode, String xUserUniverse) {
+        if (payload instanceof Map<?, ?> map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> castedMap = (Map<String, Object>) map;
+            castedMap.put("mode", xUserMode);
+            if (xUserUniverse != null) {
+                castedMap.put("universe", xUserUniverse);
+            }
         }
     }
 }
