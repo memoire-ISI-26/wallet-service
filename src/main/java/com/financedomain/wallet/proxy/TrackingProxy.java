@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface TrackingProxy {
 
     @PostMapping("/tracking/event")
-    ResponseEntity<?> collectEvent(
+    ResponseEntity<Void> collectEvent(
             @RequestBody TrackingEvent event,
             @RequestHeader("X-User-Role") String xUserRole
     );

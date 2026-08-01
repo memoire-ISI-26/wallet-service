@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class TrackingProxyFallback implements TrackingProxy {
 
     @Override
-    public ResponseEntity<?> collectEvent(TrackingEvent event, String xUserRole) {
+    public ResponseEntity<Void> collectEvent(TrackingEvent event, String xUserRole) {
         log.warn("[Fallback] tracking-service est indisponible. Événement de tracking de transaction ignoré : {}", event.getEventType());
         return ResponseEntity.ok().build();
     }

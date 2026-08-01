@@ -24,7 +24,7 @@ public class TransactionController {
     private WalletService walletService;
 
     @PostMapping("/transfer")
-    public ResponseEntity<?> transfer(
+    public ResponseEntity<Object> transfer(
             @RequestBody TransferRequest request,
             @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
@@ -43,7 +43,7 @@ public class TransactionController {
     }
 
     @PostMapping("/deposit")
-    public ResponseEntity<?> deposit(
+    public ResponseEntity<Object> deposit(
             @RequestBody OperationRequest request,
             @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
@@ -62,7 +62,7 @@ public class TransactionController {
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<?> withdraw(
+    public ResponseEntity<Object> withdraw(
             @RequestBody OperationRequest request,
             @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
@@ -81,7 +81,7 @@ public class TransactionController {
     }
 
     @GetMapping("/history/{number}")
-    public ResponseEntity<?> getTransactionHistory(
+    public ResponseEntity<Object> getTransactionHistory(
             @PathVariable String number,
             @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
@@ -95,7 +95,7 @@ public class TransactionController {
     }
 
     @PostMapping("/purchase")
-    public ResponseEntity<?> purchase(
+    public ResponseEntity<Object> purchase(
             @RequestBody PurchaseRequest request,
             @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {

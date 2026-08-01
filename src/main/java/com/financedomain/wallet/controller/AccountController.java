@@ -26,7 +26,7 @@ public class AccountController {
      * Appelé par user-service via Feign (directement via Eureka, sans passer par le gateway).
      */
     @PostMapping
-    public ResponseEntity<?> createAccount(@RequestBody Account account) {
+    public ResponseEntity<Object> createAccount(@RequestBody Account account) {
         try {
             Account created = walletService.createAccount(account);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -36,7 +36,7 @@ public class AccountController {
     }
 
     @GetMapping("/user/{idUser}")
-    public ResponseEntity<?> getAccountsByUserId(
+    public ResponseEntity<Object> getAccountsByUserId(
             @PathVariable long idUser,
             @RequestHeader(value = "X-User-Id", required = false) String xUserId,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
@@ -50,7 +50,7 @@ public class AccountController {
     }
 
     @GetMapping("/number/{number}")
-    public ResponseEntity<?> getAccountByNumber(
+    public ResponseEntity<Object> getAccountByNumber(
             @PathVariable String number,
             @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
@@ -61,12 +61,12 @@ public class AccountController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ACCESSDENIED);
         }
         return walletService.getAccountByNumber(number)
-                .map(ResponseEntity::ok)
+                .<ResponseEntity<Object>>map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/number/{number}/balance")
-    public ResponseEntity<?> getBalance(
+    public ResponseEntity<Object> getBalance(
             @PathVariable String number,
             @RequestHeader(value = "X-User-Phone", required = false) String xUserPhone,
             @RequestHeader(value = "X-User-Role", required = false) String xUserRole) {
